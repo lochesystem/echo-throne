@@ -4,7 +4,7 @@ Documento mestre de design. Primeira versão — conceito, sistemas e catálogo 
 
 > **Título:** Echo Throne · **Tagline:** *Kill the god. Claim the throne. Fight the echo.*
 
-> **Referência visual:** [mockup-arena-01.png](ref/mockup-arena-01.png) — Kael vs Capitão Drakmar, convés em tempestade, UI completa.
+> **Referência visual:** [mockup-arena-01.png](ref/mockup-arena-01.png) — caçador vs Capitão Drakmar, convés em tempestade, UI completa.
 
 ---
 
@@ -41,7 +41,7 @@ Documento mestre de design. Primeira versão — conceito, sistemas e catálogo 
 
 ### Elevator pitch
 
-O mundo acabou há séculos. Restaram apenas as **Arenas** — prisões circulares onde Deuses Corrompidos agonizam, alimentando um ciclo sem fim. Você é **Kael**, caçador da Guilda: não luta por glória, mas para extrair o **Sangue Primordial** — memória condensada em fluido, capaz de remodelar o corpo humano. Cada vitória enche suas veias de poder; cada melhoria no Altar aproxima você da mesma corrupção que aprisiona os deuses. Ao fim de dez arenas, o **Trono** espera — e quem ocupa seu lugar deixa um **eco** para sempre. Na run seguinte, o desafio final pode ser **você**: o caçador que venceu antes.
+O mundo acabou há séculos. Restaram apenas as **Arenas** — prisões circulares onde Deuses Corrompidos agonizam, alimentando um ciclo sem fim. Você é um **caçador da Guilda**: não luta por glória, mas para extrair o **Sangue Primordial** — memória condensada em fluido, capaz de remodelar o corpo humano. Cada vitória enche suas veias de poder; cada melhoria no Altar aproxima você da mesma corrupção que aprisiona os deuses. Ao fim de dez arenas, o **Trono** espera — e quem ocupa seu lugar deixa um **eco** para sempre. Na run seguinte, o desafio final pode ser **você**: o caçador que venceu antes.
 
 ### Gênero
 
@@ -168,17 +168,29 @@ Cada Arena segue o mesmo ritual:
 
 Na run seguinte, quem ocupava o trono **desce** como o 11º desafio: o **Echo** — o espelho vivo do vencedor anterior.
 
-### Kael — protagonista
+### O Caçador — protagonista
 
 | Campo | Valor |
 |-------|-------|
-| **Nome** | Kael |
-| **Visual** | Cabelo branco espetado, lenço azul, armadura escura, espada prateada |
+| **Nome** | **Escolhido pelo jogador** (sem nome fixo no lore) |
+| **Visual base** | Cabelo branco espetado, lenço azul, armadura escura, espada prateada *(mockup de referência)* |
 | **Papel** | Caçador de elite da Guilda; uma das poucas almas que ainda resistem à corrupção total |
 | **Motivação** | Extrair sangue suficiente para... *(a definir: salvar alguém? quebrar o ciclo? ascender de propósito?)* |
 | **Tom** | Silencioso, eficiente, cada movimento calculado |
 
-Backstory expandida fica para v0.2; o GDD fixa identidade visual e papel mecânico.
+O jogador **dá o nome** ao personagem no início da jornada. Esse nome aparece na UI (retrato, telas de vitória/derrota) e no **Echo save** — o boss espelho da run seguinte usa o mesmo nome com sufixo de corrupção (ex.: *"Riven Echo"*).
+
+### Character creation *(fase futura — fora do MVP)*
+
+Criação de personagem planejada para etapa posterior ao vertical slice. Escopo provisório:
+
+| Fase | Escopo |
+|------|--------|
+| **MVP / VS 0.1** | Apenas campo de **nome** (texto livre, 3–16 caracteres) antes da primeira run |
+| **Pós-MVP** | Tela de character creation: aparência base, paleta de lenço/armadura, retrato no HUD |
+| **Não no escopo inicial** | Classes, stats na criação, backstory ramificada |
+
+Backstory expandida e opções visuais completas ficam para GDD v0.2+; o VS 0.1 usa sprite placeholder do mockup com nome customizado.
 
 ### Bosses — Deuses Corrompidos
 
@@ -277,7 +289,7 @@ Entre cada arena obrigatória, o jogador escolhe caminho em um grafo horizontal:
 
 ### Recursos do jogador
 
-| Recurso | Base (Kael) | Função | Regeneração |
+| Recurso | Base | Função | Regeneração |
 |---------|-------------|--------|-------------|
 | **HP** | 180 | Sobrevivência | Poções, descanso, upgrades |
 | **Energia** | 60 | Habilidades (ex.: Investida, custo 15) | +3/s passivo; +5 por hit melee |
@@ -446,8 +458,9 @@ O nível de corrupção ao ascender **define o visual e parte do moveset** do Es
 
 Ao derrotar o Deus Corrompido final:
 
-1. Cutscene curta — Kael ocupa o trono da Arena
+1. Cutscene curta — o caçador ocupa o trono da Arena
 2. **Echo save** gravado em `localStorage`:
+   - **Nome do jogador** (string)
    - Nível de corrupção (%)
    - Estágio visual (1–6)
    - 2 upgrades aleatórios escolhidos do Altar na run
@@ -462,7 +475,7 @@ Ao derrotar o Deus Corrompido final:
 |-------|-------|
 | **Quando** | Desbloqueado após existir Echo save |
 | **Onde** | Nó secreto após arena 10 (11º desafio opcional) |
-| **Identidade** | "Kael Echo" — ou nome do caçador + sufixo do estágio de corrupção |
+| **Identidade** | `{nome do jogador} Echo` — sufixo conforme estágio de corrupção |
 | **Visual** | Estágio de corrupção do save; paleta invertida |
 | **Stats** | HP = média dos bosses 8–10; ATK escalado por corrupção |
 | **Moveset** | Investida (+ variante corrompida se estágio ≥4) + 2 padrões herdados dos upgrades salvos |
@@ -503,7 +516,7 @@ IA "replay do jogador" fica como stretch goal pós-MVP.
 
 | Zona | Conteúdo |
 |------|----------|
-| **Top-left** | Retrato Kael, barra HP (vermelho), barra Energia (azul), quick slots |
+| **Top-left** | Retrato do caçador, barra HP (vermelho), barra Energia (azul), quick slots |
 | **Top-center** | Nome do boss, barra HP grande |
 | **Top-right** | Contador SANGUE |
 | **Bottom-left** | Habilidade equipada: ícone, nome, custo |
@@ -576,7 +589,7 @@ flowchart TD
 
 | Entidade | Frames alvo |
 |----------|-------------|
-| Kael | 6 walk, 4 attack ×3, 3 dodge, 2 parry |
+| Protagonista | 6 walk, 4 attack ×3, 3 dodge, 2 parry |
 | Boss médio | 8 idle, 6 attack variants, 4 fase 2 |
 | VFX telegraph | 3–5 frames, cores distintas por tipo de ameaça |
 
@@ -585,7 +598,7 @@ flowchart TD
 - **Cenário:** convés circular de navio pirata, grade de madeira, barris, cordas, bandeira Jolly Roger
 - **Clima:** tempestade, chuva em overlay, mar agitado ao redor
 - **Iluminação:** lanternas quentes nas amuradas vs céu frio
-- **Escala:** Drakmar ~3× Kael; ocupa terço superior da arena
+- **Escala:** Drakmar ~3× o protagonista; ocupa terço superior da arena
 
 ---
 
@@ -732,7 +745,7 @@ export const PERFECT_DODGE_WINDOW = 0.12;
 
 | Entrega | Escopo |
 |---------|--------|
-| **VS 0.1** | Kael vs Drakmar, 1 arena, combate completo, HUD |
+| **VS 0.1** | Caçador vs Drakmar, 1 arena, combate completo, HUD, campo de nome |
 | **VS 0.2** | + Altar, sangue, 3 upgrades |
 | **VS 0.3** | + Mapa 3 nós, corrupção, poção |
 | **VS 0.4** | + Boss 2, save, hub mínimo |
@@ -752,6 +765,7 @@ export const PERFECT_DODGE_WINDOW = 0.12;
 | 5 | Meta-progressão entre runs mortas? | Retenção | Essência parcial (5%) + bestiário |
 | 6 | HP do boss no mockup (15k) vs tabela (1.5k) | Pacing | Escala por NG+; arena 1 = 1.5k base |
 | 7 | ~~Nome final do jogo~~ | — | **Echo Throne** (resolvido) |
+| 8 | Profundidade da character creation | Escopo de arte/UI | Nome no MVP; aparência na fase +6 |
 
 ### Riscos
 
@@ -770,9 +784,10 @@ export const PERFECT_DODGE_WINDOW = 0.12;
 | **Agora** | GDD v0.1 + mockup de referência | Este documento |
 | **+1** | Paper prototype: mapa + Drakmar em papel | — |
 | **+2** | Scaffold técnico (fork snaredusk → arenaScene) | — |
-| **+3** | Vertical slice: Kael vs Drakmar jogável | — |
+| **+3** | Vertical slice: caçador vs Drakmar jogável (+ nome) | — |
 | **+4** | 3 bosses + Altar + corrupção | — |
 | **+5** | Mapa completo + 10 bosses + The Echo | — |
+| **+6** | Character creation (aparência, paleta, retrato) | — |
 
 ---
 

@@ -8,4 +8,4 @@ Boss Rush em pixel art top-down: enfrente Deuses Corrompidos presos nas Arenas, 
 
 **Documento mestre:** [design/GDD-v0.1.md](design/GDD-v0.1.md) · [GDD renderizado](https://lochesystem.github.io/echo-throne/gdd.html)
 
-**Referência visual:** [design/ref/mockup-arena-01.png](design/ref/mockup-arena-01.png) (Kael vs Capitão Drakmar, Arena 3/10)
+**Referência visual:** [design/ref/mockup-arena-01.png](design/ref/mockup-arena-01.png) (caçador vs Capitão Drakmar, Arena 3/10)
