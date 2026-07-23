@@ -1,4 +1,11 @@
-import { Container, Graphics, type Renderer, type Texture } from 'pixi.js';
+import {
+  Assets,
+  Container,
+  Graphics,
+  Rectangle,
+  Texture,
+  type Renderer,
+} from 'pixi.js';
 import {
   drawDrakmar,
   drawHunter,
@@ -39,12 +46,12 @@ export interface AddAnimations {
 }
 
 export const HUNTER_IDLE_SPEED = 4 / 60;
-export const HUNTER_WALK_SPEED = 8 / 60;
-export const HUNTER_ATTACK_SPEED = 12 / 60;
-export const HUNTER_DODGE_SPEED = 14 / 60;
-export const BOSS_IDLE_SPEED = 3 / 60;
-export const BOSS_WALK_SPEED = 6 / 60;
-export const BOSS_ATTACK_SPEED = 10 / 60;
+export const HUNTER_WALK_SPEED = 10 / 60;
+export const HUNTER_ATTACK_SPEED = 14 / 60;
+export const HUNTER_DODGE_SPEED = 16 / 60;
+export const BOSS_IDLE_SPEED = 5 / 60;
+export const BOSS_WALK_SPEED = 8 / 60;
+export const BOSS_ATTACK_SPEED = 12 / 60;
 export const ADD_FLOAT_SPEED = 5 / 60;
 
 const HUNTER_W = 48;
@@ -130,6 +137,54 @@ export function bakeActorAnimations(renderer: Renderer): void {
   hunterAnims = bakeHunterFrames(renderer);
   bossAnims = bakeBossFrames(renderer);
   addAnims = bakeAddFrames(renderer);
+}
+
+function atlasRow(sheet: Texture, cell: number, row: number, count = 8): Texture[] {
+  return Array.from({ length: count }, (_, column) => {
+    const texture = new Texture({
+      source: sheet.source,
+      frame: new Rectangle(column * cell, row * cell, cell, cell),
+    });
+    texture.source.scaleMode = 'nearest';
+    return texture;
+  });
+}
+
+/**
+ * Prepara fallbacks procedurais e, quando disponíveis, substitui os atores
+ * principais pelos atlases pintados.
+ */
+export async function prepareActorAnimations(renderer: Renderer): Promise<void> {
+  bakeActorAnimations(renderer);
+  try {
+    const base = import.meta.env.BASE_URL;
+    const [hunterSheet, bossSheet, hunterRollSheet, bossWalkSheet] = await Promise.all([
+      Assets.load<Texture>(`${base}assets/actors/hunter-atlas-v1.png`),
+      Assets.load<Texture>(`${base}assets/actors/drakmar-atlas-v1.png`),
+      Assets.load<Texture>(`${base}assets/actors/hunter-roll-v2.png`),
+      Assets.load<Texture>(`${base}assets/actors/drakmar-walk-v2.png`),
+    ]);
+    hunterAnims = {
+      idle: atlasRow(hunterSheet, 64, 0),
+      walk: atlasRow(hunterSheet, 64, 1),
+      attacks: [2, 3, 4].map((row) => atlasRow(hunterSheet, 64, row)),
+      dodge: atlasRow(hunterRollSheet, 64, 0),
+      layout: { anchorX: 0.5, anchorY: 53 / 64, shadowY: 0 },
+    };
+    bossAnims = {
+      idle: atlasRow(bossSheet, 96, 0),
+      walk: atlasRow(bossWalkSheet, 96, 0),
+      attacks: {
+        cutlass: atlasRow(bossSheet, 96, 2),
+        gancho: atlasRow(bossSheet, 96, 3),
+        onda: atlasRow(bossSheet, 96, 4),
+        cross: atlasRow(bossSheet, 96, 4),
+      },
+      layout: { anchorX: 0.5, anchorY: 89 / 96, shadowY: 2 },
+    };
+  } catch (error) {
+    console.warn('Atlases pintados indisponíveis; usando atores procedurais.', error);
+  }
 }
 
 export function getHunterAnimations(): HunterAnimations | null {

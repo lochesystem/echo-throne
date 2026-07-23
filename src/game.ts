@@ -1,8 +1,8 @@
-import { Application } from 'pixi.js';
+import { Application, Assets } from 'pixi.js';
 import { GAME_HEIGHT, GAME_WIDTH } from './engine/constants.ts';
 import { InputManager } from './engine/input.ts';
 import { ArenaScene } from './scenes/arenaScene.ts';
-import { bakeActorAnimations } from './world/actorAnimAssets.ts';
+import { prepareActorAnimations } from './world/actorAnimAssets.ts';
 import { Hud } from './ui/hud.ts';
 import { NameEntryUI } from './ui/nameEntryUI.ts';
 import { ResultUI } from './ui/resultUI.ts';
@@ -37,7 +37,10 @@ export class Game {
 
     this.input = new InputManager(canvas);
     this.hud = new Hud();
-    bakeActorAnimations(this.app.renderer);
+    await Promise.all([
+      prepareActorAnimations(this.app.renderer),
+      Assets.load(`${import.meta.env.BASE_URL}assets/arena/deck-tiles-v1.png`),
+    ]);
     this.scene = new ArenaScene(this.input, this.hud);
     this.app.stage.addChild(this.scene.container);
     this.scene.container.visible = false;

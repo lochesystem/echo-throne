@@ -1,7 +1,11 @@
-import { PERFECT_DODGE_WINDOW } from '../engine/constants.ts';
+import {
+  PERFECT_DODGE_SLOW_MULT,
+  PERFECT_DODGE_WINDOW,
+  PLAYER_RADIUS,
+} from '../engine/constants.ts';
 import type { BossDef } from '../data/bosses.ts';
 import type { BossAttackState, BossCombatPhase } from '../types.ts';
-import { distance } from './combat.ts';
+import { distance, isInAttackArc } from './combat.ts';
 import {
   enterBossPhase2,
   getBossPhaseModifiers,
@@ -103,27 +107,44 @@ export class Boss {
     this.slowTimer = Math.max(this.slowTimer, seconds);
   }
 
-  takeDamage(amount: number): void {
+  takeDamage(amount: number): number {
+    const previousHp = this.hp;
     this.hp = Math.max(0, this.hp - Math.max(1, Math.round(amount)));
+    return previousHp - this.hp;
   }
 
-  /** True se um golpe aparável está prestes a acertar (para perfect dodge). */
-  isAttackImminent(): boolean {
+  /** True se um golpe corpo a corpo atingirá o jogador dentro da janela perfeita. */
+  isAttackImminent(px: number, py: number): boolean {
     if (!this.attack) return false;
-    if (this.attack.windup > 0) return this.attack.windup <= PERFECT_DODGE_WINDOW;
-    return this.attack.active > 0;
+    if (this.attack.windup <= 0 || this.attack.windup > PERFECT_DODGE_WINDOW) return false;
+
+    if (this.attack.kind === 'cutlass') {
+      return isInAttackArc(
+        this.x,
+        this.y,
+        this.attack.angle,
+        px,
+        py,
+        CUTLASS_RANGE + PLAYER_RADIUS,
+        CUTLASS_ARC / 2,
+      );
+    }
+    if (this.attack.kind === 'gancho') {
+      return distance(this.x, this.y, px, py) <= GANCHO_RANGE + PLAYER_RADIUS;
+    }
+    // Ondas só contam quando o projétil realmente se aproxima do jogador.
+    return false;
   }
 
   update(dt: number, px: number, py: number): BossEvent[] {
     const events: BossEvent[] = [];
     if (!this.alive) return events;
 
-    const mods = getBossPhaseModifiers(this);
-
     // Transição de fase
     if (!this.phase2 && shouldEnterBossPhase2(this.hp, this.maxHp)) {
       enterBossPhase2(this);
     }
+    const mods = getBossPhaseModifiers(this);
 
     // Timers globais
     if (this.slowTimer > 0) this.slowTimer = Math.max(0, this.slowTimer - dt);
@@ -133,7 +154,7 @@ export class Boss {
       return events; // atordoado: não age
     }
 
-    const slowMult = this.slowTimer > 0 ? 0.4 : 1;
+    const slowMult = this.slowTimer > 0 ? PERFECT_DODGE_SLOW_MULT : 1;
 
     // Invocação ao entrar na fase 2
     if (this.phase2 && !this.phase2Summoned && mods.summonCount > 0) {
@@ -151,11 +172,11 @@ export class Boss {
 
     // Golpe em andamento
     if (this.attack) {
-      this.tickAttack(dt, events);
+      this.tickAttack(dt * slowMult, events);
     } else {
       // Reposicionamento em direção ao alcance ideal
       this.reposition(dt, px, py, slowMult, mods);
-      this.cooldown -= dt * (1 / mods.attackCooldownMult);
+      this.cooldown -= dt * slowMult * (1 / mods.attackCooldownMult);
       if (this.cooldown <= 0) {
         this.startAttack(px, py, mods);
       }

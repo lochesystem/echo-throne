@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Rectangle, Sprite, Texture } from 'pixi.js';
 import { ARENA_HEIGHT, ARENA_WALL, ARENA_WIDTH } from '../engine/constants.ts';
 
 export interface ArenaBounds {
@@ -46,11 +46,27 @@ export function buildArenaBackground(): Container {
   const deck = new Graphics();
   deck.roundRect(ARENA_WALL - 4, ARENA_WALL - 4, ARENA_WIDTH - ARENA_WALL * 2 + 8, ARENA_HEIGHT - ARENA_WALL * 2 + 8, 18);
   deck.fill({ color: 0x5a3d24 });
-  for (let x = ARENA_WALL; x < ARENA_WIDTH - ARENA_WALL; x += 16) {
-    deck.rect(x, ARENA_WALL, 1, ARENA_HEIGHT - ARENA_WALL * 2);
-    deck.fill({ color: 0x4a3018, alpha: 0.6 });
-  }
   root.addChild(deck);
+
+  // Tiles pintados; o fundo procedural acima permanece como fallback visual.
+  const sheet = Texture.from(`${import.meta.env.BASE_URL}assets/arena/deck-tiles-v1.png`);
+  const deckTiles = new Container();
+  for (let y = 16, row = 0; y <= ARENA_HEIGHT - 48; y += 32, row++) {
+    for (let x = 16, column = 0; x <= ARENA_WIDTH - 48; x += 32, column++) {
+      const variant = (column * 7 + row * 3) % 8;
+      const texture = new Texture({
+        source: sheet.source,
+        frame: new Rectangle(variant * 64, 0, 64, 64),
+      });
+      texture.source.scaleMode = 'nearest';
+      const tile = new Sprite(texture);
+      tile.position.set(x, y);
+      tile.width = 32;
+      tile.height = 32;
+      deckTiles.addChild(tile);
+    }
+  }
+  root.addChild(deckTiles);
 
   // Grades no chão (as duas do mockup)
   for (const gx of [ARENA_WIDTH * 0.32, ARENA_WIDTH * 0.68]) {

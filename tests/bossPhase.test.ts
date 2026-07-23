@@ -6,6 +6,9 @@ import {
   shouldEnterBossPhase2,
   type BossPhaseEnemy,
 } from '../src/systems/bossPhase.ts';
+import { CAPITAO_DRAKMAR } from '../src/data/bosses.ts';
+import { Boss, CUTLASS_RANGE } from '../src/systems/bossMechanics.ts';
+import { PERFECT_DODGE_WINDOW } from '../src/engine/constants.ts';
 
 function enemy(hp: number, maxHp = 100): BossPhaseEnemy {
   return { isBoss: true, hp, maxHp, bossCombatPhase: 1, enraged: false };
@@ -40,5 +43,31 @@ describe('bossPhase', () => {
     expect(calcBossHpBarFills(100, 100)).toEqual({ phase1: 1, phase2: 1 });
     expect(calcBossHpBarFills(75, 100)).toEqual({ phase1: 0.5, phase2: 1 });
     expect(calcBossHpBarFills(25, 100)).toEqual({ phase1: 0, phase2: 0.5 });
+  });
+
+  it('limita perfect dodge melee a um golpe que realmente alcançará o jogador', () => {
+    const boss = new Boss(CAPITAO_DRAKMAR);
+    boss.reset(100, 100);
+    boss.attack = {
+      kind: 'cutlass',
+      windup: PERFECT_DODGE_WINDOW,
+      windupMax: 0.55,
+      active: 0,
+      recover: 0,
+      parryable: true,
+      angle: 0,
+      didHit: false,
+    };
+    expect(boss.isAttackImminent(100 + CUTLASS_RANGE, 100)).toBe(true);
+    expect(boss.isAttackImminent(100 - CUTLASS_RANGE, 100)).toBe(false);
+    expect(boss.isAttackImminent(300, 100)).toBe(false);
+  });
+
+  it('takeDamage retorna somente o dano efetivamente aplicado', () => {
+    const boss = new Boss(CAPITAO_DRAKMAR);
+    boss.hp = 5;
+    expect(boss.takeDamage(40)).toBe(5);
+    expect(boss.hp).toBe(0);
+    expect(boss.takeDamage(40)).toBe(0);
   });
 });

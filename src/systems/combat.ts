@@ -47,6 +47,39 @@ export function circlesOverlap(
   return dx * dx + dy * dy < (ar + br) ** 2;
 }
 
+/**
+ * Verifica se um projétil linear alcançará o círculo-alvo dentro da janela.
+ * Considera apenas projéteis vindo na direção do alvo e próximos da trajetória.
+ */
+export function isLinearImpactImminent(
+  projectileX: number,
+  projectileY: number,
+  directionX: number,
+  directionY: number,
+  speed: number,
+  targetX: number,
+  targetY: number,
+  collisionRadius: number,
+  windowSeconds: number,
+): boolean {
+  if (speed <= 0 || windowSeconds < 0) return false;
+
+  const relX = targetX - projectileX;
+  const relY = targetY - projectileY;
+  const forward = relX * directionX + relY * directionY;
+  if (forward < 0) return false;
+
+  const distanceSq = relX * relX + relY * relY;
+  const lateralSq = Math.max(0, distanceSq - forward * forward);
+  if (lateralSq > collisionRadius * collisionRadius) return false;
+
+  const alongPathToContact = Math.max(
+    0,
+    forward - Math.sqrt(Math.max(0, collisionRadius * collisionRadius - lateralSq)),
+  );
+  return alongPathToContact / speed <= windowSeconds;
+}
+
 export function clamp(v: number, min: number, max: number): number {
   return v < min ? min : v > max ? max : v;
 }

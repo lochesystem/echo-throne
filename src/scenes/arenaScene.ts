@@ -6,6 +6,7 @@ import {
   COMBO_RANGE,
   COMBO_WINDUP,
   INVESTIDA_DAMAGE,
+  PERFECT_DODGE_WINDOW,
   PERFECT_DODGE_SLOW,
   PLAYER_RADIUS,
   WEAKPOINT_DAMAGE_MULT,
@@ -18,7 +19,12 @@ import type { InputManager } from '../engine/input.ts';
 import { CAPITAO_DRAKMAR } from '../data/bosses.ts';
 import { Ability } from '../systems/ability.ts';
 import { BloodTracker } from '../systems/bloodEconomy.ts';
-import { circlesOverlap, distance, isInAttackArc } from '../systems/combat.ts';
+import {
+  circlesOverlap,
+  distance,
+  isInAttackArc,
+  isLinearImpactImminent,
+} from '../systems/combat.ts';
 import {
   ADD_DAMAGE,
   Boss,
@@ -188,10 +194,12 @@ export class ArenaScene {
 
     // Inputs de ação
     if (this.input.consumeKey('shift')) this.doDodge(move.x, move.y);
-    if (this.input.consumeLeftClick()) this.player.tryAttack(aim);
+    const attackQueued = this.input.consumeLeftClick();
+    const spaceQueued = this.input.consumeKey(' ');
+    if (attackQueued || spaceQueued) this.player.tryAttack(aim);
     if (this.input.consumeRightClick()) this.parry.tryStart();
     if (this.input.consumeKey('q')) this.castAbility(aim);
-    if (this.input.consumeKey('1')) this.player.usePotion();
+    if (this.input.consumePotion()) this.player.usePotion();
 
     // Atualiza sistemas
     this.parry.update(dt);
@@ -253,8 +261,10 @@ export class ArenaScene {
 
   private doDodge(dx: number, dy: number): void {
     if (!this.player.tryDodge(dx, dy)) return;
-    this.hunterSprite.playDodge();
-    const imminent = this.boss.isAttackImminent() || this.waveImminent();
+    const dodgeFacingX = Math.abs(dx) > 0.01 ? dx : Math.cos(this.player.aimAngle);
+    this.hunterSprite.playDodge(dodgeFacingX);
+    const imminent =
+      this.boss.isAttackImminent(this.player.x, this.player.y) || this.waveImminent();
     if (imminent) {
       const energy = this.blood.registerPerfectDodge();
       this.player.grantEnergy(energy);
@@ -304,8 +314,8 @@ export class ArenaScene {
   }
 
   private damageBoss(amount: number): void {
-    this.boss.takeDamage(amount);
-    this.blood.addDamage(amount, this.boss.def.bloodMult);
+    const actualDamage = this.boss.takeDamage(amount);
+    if (actualDamage > 0) this.blood.addDamage(actualDamage, this.boss.def.bloodMult);
   }
 
   // ---- Eventos do boss ----
@@ -326,8 +336,8 @@ export class ArenaScene {
   private resolveBossAttack(kind: AttackKind, angle: number): void {
     if (kind === 'cutlass') {
       // Parry tem prioridade
-      const parried = resolveParry(this.parry, true);
       const inArc = isInAttackArc(this.boss.x, this.boss.y, angle, this.player.x, this.player.y, CUTLASS_RANGE, CUTLASS_ARC / 2);
+      const parried = inArc ? resolveParry(this.parry, true) : null;
       if (parried && inArc) {
         this.blood.registerParry();
         this.boss.applyStagger(parried.staggerDuration);
@@ -390,7 +400,17 @@ export class ArenaScene {
   private waveImminent(): boolean {
     for (const w of this.waves) {
       if (w.didHit) continue;
-      if (distance(w.x, w.y, this.player.x, this.player.y) < w.radius + PLAYER_RADIUS + 16) return true;
+      if (isLinearImpactImminent(
+        w.x,
+        w.y,
+        w.dx,
+        w.dy,
+        w.speed,
+        this.player.x,
+        this.player.y,
+        w.radius + PLAYER_RADIUS,
+        PERFECT_DODGE_WINDOW,
+      )) return true;
     }
     return false;
   }

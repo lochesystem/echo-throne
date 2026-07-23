@@ -11,6 +11,7 @@ export class InputManager {
   mouseDown = false;
   private leftQueued = false;
   private rightQueued = false;
+  private potionQueued = false;
 
   constructor(canvas: HTMLCanvasElement) {
     window.addEventListener('keydown', (e) => {
@@ -45,6 +46,10 @@ export class InputManager {
     });
 
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      this.potionQueued = true;
+    }, { passive: false });
   }
 
   isDown(key: string): boolean {
@@ -61,6 +66,13 @@ export class InputManager {
     if (!this.rightQueued) return false;
     this.rightQueued = false;
     return true;
+  }
+
+  consumePotion(): boolean {
+    const keyQueued = this.consumeKey('1');
+    const wheelQueued = this.potionQueued;
+    this.potionQueued = false;
+    return keyQueued || wheelQueued;
   }
 
   consumeKey(key: string): boolean {

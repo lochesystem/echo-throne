@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { calcDamage, circlesOverlap, clamp, distance, isInAttackArc } from '../src/systems/combat.ts';
+import {
+  calcDamage,
+  circlesOverlap,
+  clamp,
+  distance,
+  isInAttackArc,
+  isLinearImpactImminent,
+} from '../src/systems/combat.ts';
 
 describe('combat math', () => {
   it('calcDamage aplica defesa e mínimo de 1', () => {
@@ -30,5 +37,12 @@ describe('combat math', () => {
   it('circlesOverlap detecta sobreposição', () => {
     expect(circlesOverlap(0, 0, 5, 6, 0, 5)).toBe(true);
     expect(circlesOverlap(0, 0, 5, 20, 0, 5)).toBe(false);
+  });
+
+  it('detecta impacto linear apenas na trajetória e dentro da janela', () => {
+    expect(isLinearImpactImminent(0, 0, 1, 0, 100, 20, 0, 5, 0.15)).toBe(true);
+    expect(isLinearImpactImminent(0, 0, 1, 0, 100, 40, 0, 5, 0.15)).toBe(false);
+    expect(isLinearImpactImminent(0, 0, 1, 0, 100, 20, 20, 5, 0.15)).toBe(false);
+    expect(isLinearImpactImminent(20, 0, 1, 0, 100, 0, 0, 5, 0.15)).toBe(false);
   });
 });

@@ -20,15 +20,15 @@ function drawShadow(parent: Container, width: number): Graphics {
   return shadow;
 }
 
-/** Sprites olham para a esquerda em scale.x = 1 (padrão snaredusk). */
+/** Os atlases pintados têm orientação nativa para a direita. */
 function applySpriteFacing(
   target: { scale: { x: number } },
   moveX: number,
   facing: { value: number },
   nativeScale = 1,
 ): void {
-  if (moveX < -0.01) facing.value = 1;
-  else if (moveX > 0.01) facing.value = -1;
+  if (moveX < -0.01) facing.value = -1;
+  else if (moveX > 0.01) facing.value = 1;
   target.scale.x = facing.value * nativeScale;
 }
 
@@ -36,7 +36,7 @@ export interface HunterSprite extends Container {
   zOffset: number;
   setLocomotion(moving: boolean, moveX?: number): void;
   playAttack(comboIndex: number, aimX: number, duration: number): void;
-  playDodge(): void;
+  playDodge(directionX?: number): void;
   setHurtFlash(active: boolean): void;
 }
 
@@ -106,9 +106,10 @@ export function createHunterSprite(): HunterSprite {
     anim.gotoAndPlay(0);
   };
 
-  root.playDodge = () => {
+  root.playDodge = (directionX = lastMoveX) => {
     if (!anim || !anims || attacking) return;
     dodging = true;
+    applySpriteFacing(anim, directionX, facing);
     anim.loop = false;
     anim.textures = anims.dodge;
     anim.animationSpeed = HUNTER_DODGE_SPEED;
@@ -142,7 +143,7 @@ export function createDrakmarSprite(): BossSprite {
   const root = new Container() as BossSprite;
   root.zOffset = 0.5;
   const anims = getBossAnimations();
-  const facing = { value: -1 };
+  const facing = { value: 1 };
   let anim: AnimatedSprite | null = null;
   let attacking = false;
   let lastMoving = false;
@@ -157,8 +158,8 @@ export function createDrakmarSprite(): BossSprite {
     anim.animationSpeed = BOSS_IDLE_SPEED;
     anim.play();
     root.addChild(anim);
-    facing.value = -1;
-    anim.scale.x = -1;
+    facing.value = 1;
+    anim.scale.x = 1;
   } else {
     drawShadow(root, 36);
     const body = new Graphics();
