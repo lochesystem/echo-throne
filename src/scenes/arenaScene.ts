@@ -4,6 +4,7 @@ import {
   ARENA_WIDTH,
   COMBO_ARC,
   COMBO_RANGE,
+  COMBO_WINDUP,
   INVESTIDA_DAMAGE,
   PERFECT_DODGE_SLOW,
   PLAYER_RADIUS,
@@ -38,9 +39,16 @@ import {
   createDrakmarSprite,
   createHunterSprite,
   createSpectralAddSprite,
-  createSwordSprite,
-  type ActorSprite,
-} from '../world/placeholderArt.ts';
+  type BossSprite,
+  type HunterSprite,
+  type AddSprite,
+} from '../world/actorSprites.ts';
+import {
+  createWeaponAttackFx,
+  tickWeaponAttackFx,
+  type AttackFxStyle,
+  type WeaponAttackFxState,
+} from '../world/weaponAttackFx.ts';
 import type { Hud } from '../ui/hud.ts';
 
 interface Wave {
@@ -67,6 +75,7 @@ export class ArenaScene {
   private readonly waveLayer = new Graphics();
   private readonly telegraphLayer = new Graphics();
   private readonly fxLayer = new Graphics();
+  private readonly attackFxLayer = new Container();
   private readonly ySort = new YSortLayer();
   private readonly camera = new Camera();
   private readonly fx = new FxRunner();
@@ -77,18 +86,19 @@ export class ArenaScene {
   private readonly ability = new Ability();
   private readonly blood = new BloodTracker();
 
-  private hunterSprite!: ActorSprite;
-  private swordSprite!: Graphics;
-  private drakmarSprite!: ActorSprite;
-  private addSprites: ActorSprite[] = [];
+  private hunterSprite!: HunterSprite;
+  private drakmarSprite!: BossSprite;
+  private addSprites: AddSprite[] = [];
+  private attackFxs: WeaponAttackFxState[] = [];
 
   private waves: Wave[] = [];
   private phase: ArenaPhase = 'intro';
   private introTimer = 0;
   private contactCd = 0;
   private shakeTimer = 0;
-  private swordSwing = 0; // ângulo animado do golpe
   private lastMouseAngle = 0;
+  private prevBossX = 0;
+  private prevBossY = 0;
 
   onVictory: (() => void) | null = null;
   onDefeat: (() => void) | null = null;
@@ -100,6 +110,7 @@ export class ArenaScene {
     this.worldRoot.addChild(this.waveLayer);
     this.worldRoot.addChild(this.telegraphLayer);
     this.worldRoot.addChild(this.ySort);
+    this.worldRoot.addChild(this.attackFxLayer);
     this.worldRoot.addChild(this.fxLayer);
   }
 
@@ -112,6 +123,8 @@ export class ArenaScene {
     this.ySort.removeChildren();
     this.addSprites = [];
     this.waves = [];
+    this.attackFxs = [];
+    this.attackFxLayer.removeChildren();
     this.fx.clear();
 
     this.player.reset(ARENA_WIDTH * 0.5, ARENA_HEIGHT * 0.72, name);
@@ -121,12 +134,12 @@ export class ArenaScene {
     this.blood.reset();
 
     this.hunterSprite = createHunterSprite();
-    this.swordSprite = createSwordSprite();
     this.drakmarSprite = createDrakmarSprite();
-    this.drakmarSprite.scale.set(1);
     this.ySort.addChild(this.drakmarSprite);
-    this.ySort.addChild(this.swordSprite);
     this.ySort.addChild(this.hunterSprite);
+
+    this.prevBossX = this.boss.x;
+    this.prevBossY = this.boss.y;
 
     this.phase = 'intro';
     this.introTimer = 2.4;
@@ -187,10 +200,12 @@ export class ArenaScene {
     this.constrainPlayer();
 
     if (swing) {
-      this.swordSwing = 1;
+      const duration = COMBO_WINDUP[swing.hitIndex] ?? 0.15;
+      this.hunterSprite.playAttack(swing.hitIndex, Math.cos(swing.aimAngle), duration);
+      const fxStyle: AttackFxStyle = swing.isFinisher ? 'sword_heavy' : 'knife';
+      this.playAttackFx(fxStyle, swing.aimAngle, COMBO_RANGE);
       this.resolveSwing(swing.damage, swing.aimAngle, swing.isFinisher);
     }
-    if (this.swordSwing > 0) this.swordSwing = Math.max(0, this.swordSwing - dt * 6);
 
     // Boss
     const events = this.boss.update(dt, this.player.x, this.player.y);
@@ -202,6 +217,7 @@ export class ArenaScene {
 
     // FX / câmera
     this.fx.update(dt);
+    this.updateAttackFx(dt);
     if (this.shakeTimer > 0) this.shakeTimer = Math.max(0, this.shakeTimer - dt);
     this.camera.follow(this.player.x, this.player.y, ARENA_WIDTH, ARENA_HEIGHT);
     this.camera.update();
@@ -237,6 +253,7 @@ export class ArenaScene {
 
   private doDodge(dx: number, dy: number): void {
     if (!this.player.tryDodge(dx, dy)) return;
+    this.hunterSprite.playDodge();
     const imminent = this.boss.isAttackImminent() || this.waveImminent();
     if (imminent) {
       const energy = this.blood.registerPerfectDodge();
@@ -252,6 +269,7 @@ export class ArenaScene {
     const cast = this.ability.cast(this.player, aim);
     if (!cast) return;
     this.constrainPlayer();
+    this.playAttackFx('sword_heavy', aim, COMBO_RANGE + 8, 0xbfe4ff);
     // dano no trajeto vs boss
     if (this.segmentHitsCircle(cast.originX, cast.originY, cast.targetX, cast.targetY, this.boss.x, this.boss.y, this.boss.def.radius + 10)) {
       this.damageBoss(INVESTIDA_DAMAGE);
@@ -299,6 +317,7 @@ export class ArenaScene {
       } else if (ev.type === 'pull') {
         this.applyGancho(ev.angle ?? 0);
       } else if (ev.type === 'attackActivate') {
+        this.drakmarSprite.playAttack(ev.kind ?? 'cutlass', 0.4);
         this.resolveBossAttack(ev.kind as AttackKind, ev.angle ?? 0);
       }
     }
@@ -484,6 +503,29 @@ export class ArenaScene {
     g.stroke({ color: 0x4aa6e8, width: 6, alpha });
   }
 
+  private playAttackFx(
+    style: AttackFxStyle,
+    angle: number,
+    range: number,
+    color = 0xd8dce8,
+  ): void {
+    const fx = createWeaponAttackFx(style, angle, range, color);
+    fx.root.x = this.player.x;
+    fx.root.y = this.player.y;
+    this.attackFxs.push(fx);
+    this.attackFxLayer.addChild(fx.root);
+  }
+
+  private updateAttackFx(dt: number): void {
+    for (let i = this.attackFxs.length - 1; i >= 0; i--) {
+      const fx = this.attackFxs[i]!;
+      if (!tickWeaponAttackFx(fx, dt, this.player.x, this.player.y)) {
+        fx.root.destroy({ children: true });
+        this.attackFxs.splice(i, 1);
+      }
+    }
+  }
+
   // ---- Sincronização de sprites ----
 
   private syncSprites(): void {
@@ -498,20 +540,23 @@ export class ArenaScene {
 
     this.hunterSprite.x = Math.round(this.player.x);
     this.hunterSprite.y = Math.round(this.player.y);
-    this.hunterSprite.scale.x = this.player.facing;
-    this.hunterSprite.alpha = this.player.invincible > 0 ? 0.55 : 1;
 
-    // espada acompanha o jogador, girando no golpe
-    this.swordSprite.x = Math.round(this.player.x);
-    this.swordSprite.y = Math.round(this.player.y) - 8;
-    const swingOffset = this.swordSwing * 0.8;
-    this.swordSprite.rotation = this.player.aimAngle - swingOffset;
-    this.swordSprite.visible = this.player.isAttacking || this.swordSwing > 0.05;
+    const playerSpeed = Math.hypot(this.player.vx, this.player.vy);
+    const isMoving = playerSpeed > 10 && !this.player.isDodging;
+    const faceX = playerSpeed > 10 ? this.player.vx : Math.cos(this.lastMouseAngle);
+    this.hunterSprite.setLocomotion(isMoving, faceX);
+    this.hunterSprite.setHurtFlash(this.player.invincible > 0);
 
     this.drakmarSprite.x = Math.round(this.boss.x);
     this.drakmarSprite.y = Math.round(this.boss.y);
-    this.drakmarSprite.scale.x = this.player.x < this.boss.x ? -1 : 1;
-    this.drakmarSprite.alpha = this.boss.staggerTimer > 0 ? 0.7 : 1;
+    const bossDx = this.boss.x - this.prevBossX;
+    const bossDy = this.boss.y - this.prevBossY;
+    const bossMoving = Math.hypot(bossDx, bossDy) > 0.5 && this.boss.staggerTimer <= 0 && !this.boss.attack;
+    const bossFace = this.player.x - this.boss.x;
+    this.drakmarSprite.setLocomotion(bossMoving, bossFace);
+    this.drakmarSprite.setStaggered(this.boss.staggerTimer > 0);
+    this.prevBossX = this.boss.x;
+    this.prevBossY = this.boss.y;
 
     this.ySort.resort();
   }
