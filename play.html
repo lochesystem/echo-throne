@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Echo Throne — VS 0.1 jogável. Boss Rush pixel art." />
+  <title>Echo Throne — VS 0.1</title>
+  <link rel="stylesheet" href="/src/ui/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="game-wrapper">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- HUD de combate -->
+      <div id="hud" class="hidden" aria-hidden="true">
+        <!-- Top-left: retrato + vitais -->
+        <div class="hud-player">
+          <div class="hud-portrait" aria-hidden="true"><span id="hud-initial">?</span></div>
+          <div class="hud-vitals">
+            <p id="hud-name" class="hud-name">Caçador</p>
+            <div class="hud-bar-row">
+              <div class="hud-bar-track"><div id="hud-hp-fill" class="hud-bar-fill hp"></div></div>
+              <span id="hud-hp" class="hud-bar-value">180/180</span>
+            </div>
+            <div class="hud-bar-row">
+              <div class="hud-bar-track energy"><div id="hud-energy-fill" class="hud-bar-fill energy"></div></div>
+              <span id="hud-energy" class="hud-bar-value">60/60</span>
+            </div>
+            <div class="hud-slots">
+              <div class="hud-slot" title="Espada">⚔</div>
+              <div class="hud-slot" title="Parry">🛡</div>
+              <div class="hud-slot" title="Poção" id="hud-potion">🧪<b id="hud-potion-count">3</b></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top-right: sangue -->
+        <div class="hud-blood">
+          <span class="hud-blood-icon" aria-hidden="true">🩸</span>
+          <div>
+            <p class="hud-blood-label">SANGUE</p>
+            <p id="hud-blood" class="hud-blood-value">0</p>
+          </div>
+        </div>
+
+        <!-- Top-center: boss -->
+        <div id="boss-hud" class="boss-hud hidden">
+          <p id="boss-name" class="boss-name"></p>
+          <div class="boss-bar">
+            <div id="boss-phase2" class="boss-phase2"></div>
+            <div id="boss-phase1" class="boss-phase1"></div>
+            <div class="boss-midmark" aria-hidden="true"></div>
+          </div>
+          <p id="boss-hp-text" class="boss-hp-text"></p>
+        </div>
+
+        <!-- Bottom-left: habilidade -->
+        <div class="hud-ability">
+          <div class="hud-ability-icon" id="hud-ability-icon">✦</div>
+          <div>
+            <p class="hud-ability-label">HABILIDADE</p>
+            <p class="hud-ability-name">Investida</p>
+            <p class="hud-ability-cost">(CUSTO: 15)</p>
+          </div>
+        </div>
+
+        <!-- Bottom-center: corrupção -->
+        <div class="hud-corruption">
+          <p class="hud-corruption-label">CORRUPÇÃO</p>
+          <div class="hud-corruption-track"><div id="hud-corruption-fill" class="hud-corruption-fill"></div></div>
+        </div>
+
+        <!-- Bottom-right: arena -->
+        <div class="hud-arena">
+          <p class="hud-arena-label">ARENA</p>
+          <p id="hud-arena-value" class="hud-arena-value">1/10</p>
+        </div>
+
+        <p id="hud-hint" class="hud-hint"></p>
+      </div>
+    </div>
+
+    <!-- Tela de nome -->
+    <div id="name-screen" class="overlay">
+      <div class="overlay-panel">
+        <p class="overlay-kicker">Guilda dos Caçadores</p>
+        <h1 class="overlay-title">ECHO THRONE</h1>
+        <p class="overlay-sub"><em>Kill the god. Claim the throne. Fight the echo.</em></p>
+        <label class="name-label" for="name-input">Qual é o seu nome, caçador?</label>
+        <input id="name-input" class="name-input" type="text" maxlength="16" placeholder="ex.: Riven" autocomplete="off" />
+        <p id="name-error" class="name-error"></p>
+        <button id="btn-start" class="overlay-btn" type="button">Entrar na Arena</button>
+        <p class="overlay-controls">
+          WASD mover · Mouse/Espaço atacar · Shift esquivar (perfeita no último instante) ·
+          Botão direito parry · Q Investida · 1 poção
+        </p>
+      </div>
+    </div>
+
+    <!-- Tela de resultado -->
+    <div id="result-screen" class="overlay hidden">
+      <div class="overlay-panel">
+        <h1 id="result-title" class="overlay-title"></h1>
+        <p id="result-sub" class="overlay-sub"></p>
+        <div id="result-stats" class="result-stats"></div>
+        <button id="btn-retry" class="overlay-btn" type="button">Lutar novamente</button>
+        <a class="overlay-link" href="index.html">Voltar ao site</a>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

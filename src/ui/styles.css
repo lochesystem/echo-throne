@@ -1,0 +1,297 @@
+:root {
+  --bg: #06080d;
+  --panel: rgba(14, 12, 20, 0.82);
+  --border: #3a2f22;
+  --gold: #c9a227;
+  --blood: #c42b3e;
+  --hp: #d23b3b;
+  --energy: #2f6fb0;
+  --corruption: #7a3f9a;
+  --text: #e8e0d0;
+  --muted: #9a8f7a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  font-family: 'Trebuchet MS', system-ui, sans-serif;
+  color: var(--text);
+  user-select: none;
+}
+
+#app { position: fixed; inset: 0; }
+
+#game-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 40%, #10131c 0%, #04060a 100%);
+}
+
+#game-canvas {
+  image-rendering: pixelated;
+  display: block;
+}
+
+.hidden { display: none !important; }
+
+/* ============ HUD ============ */
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-size: 12px;
+}
+
+.hud-player {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.hud-portrait {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--gold);
+  border-radius: 3px;
+  background: linear-gradient(160deg, #1c2430, #0d1218);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+  color: #cfd6e2;
+}
+
+.hud-vitals { display: flex; flex-direction: column; gap: 3px; min-width: 150px; }
+.hud-name { font-size: 12px; font-weight: bold; letter-spacing: 0.06em; color: #fff; }
+
+.hud-bar-row { display: flex; align-items: center; gap: 5px; }
+.hud-bar-track {
+  flex: 1;
+  height: 9px;
+  background: #1a1410;
+  border: 1px solid #000;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.hud-bar-fill { height: 100%; transition: width 0.12s linear; }
+.hud-bar-fill.hp { background: linear-gradient(180deg, #e35a5a, var(--hp)); }
+.hud-bar-fill.energy { background: linear-gradient(180deg, #4a92d8, var(--energy)); }
+.hud-bar-value { font-size: 10px; color: var(--muted); min-width: 52px; text-align: right; }
+
+.hud-slots { display: flex; gap: 4px; margin-top: 2px; }
+.hud-slot {
+  position: relative;
+  width: 20px; height: 20px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: #14100a;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+}
+.hud-slot b { position: absolute; bottom: -2px; right: 0; font-size: 9px; color: var(--gold); }
+
+.hud-blood {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+.hud-blood-icon { font-size: 18px; }
+.hud-blood-label { font-size: 9px; color: var(--blood); letter-spacing: 0.1em; }
+.hud-blood-value { font-size: 16px; font-weight: bold; color: #fff; }
+
+.boss-hud {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46%;
+  text-align: center;
+}
+.boss-name {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.14em;
+  color: #f0e6d2;
+  text-shadow: 0 1px 3px #000;
+  margin-bottom: 4px;
+}
+.boss-bar {
+  position: relative;
+  height: 14px;
+  background: #1a0c0c;
+  border: 1px solid #000;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.7);
+}
+.boss-phase1, .boss-phase2 { position: absolute; top: 0; left: 0; height: 100%; transition: width 0.15s linear; }
+.boss-phase2 { background: linear-gradient(180deg, #6a1420, #3a0a10); width: 100%; }
+.boss-phase1 { background: linear-gradient(180deg, #e34b4b, #a01e1e); }
+.boss-midmark { position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: rgba(0,0,0,0.6); }
+.boss-hp-text { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.hud-ability {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+.hud-ability-icon {
+  width: 30px; height: 30px;
+  border: 1px solid var(--corruption);
+  border-radius: 3px;
+  background: #1a1024;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #c98fe0;
+}
+.hud-ability-icon.cooldown { opacity: 0.35; }
+.hud-ability-label { font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
+.hud-ability-name { font-size: 12px; font-weight: bold; color: #fff; }
+.hud-ability-cost { font-size: 9px; color: var(--corruption); }
+
+.hud-corruption {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30%;
+  text-align: center;
+}
+.hud-corruption-label { font-size: 9px; color: var(--corruption); letter-spacing: 0.12em; margin-bottom: 3px; }
+.hud-corruption-track {
+  height: 10px;
+  background: #140a1a;
+  border: 1px solid #000;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.hud-corruption-fill {
+  height: 100%;
+  width: 30%;
+  background: linear-gradient(90deg, #4a2060, #b558e0);
+}
+
+.hud-arena {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  text-align: right;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+.hud-arena-label { font-size: 9px; color: var(--muted); letter-spacing: 0.12em; }
+.hud-arena-value { font-size: 15px; font-weight: bold; color: var(--gold); }
+
+.hud-hint {
+  position: absolute;
+  bottom: 54px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0,0,0,0.6);
+  padding: 4px 12px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.hud-hint.visible { opacity: 1; }
+
+/* ============ Overlays ============ */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 30%, #1a1030 0%, #04060a 75%);
+  z-index: 20;
+}
+.overlay-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 28px 32px;
+  max-width: 440px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+}
+.overlay-kicker { font-size: 12px; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; }
+.overlay-title {
+  font-size: 34px;
+  letter-spacing: 0.14em;
+  color: #fff;
+  margin: 6px 0;
+  font-family: 'Cinzel', 'Trebuchet MS', serif;
+}
+.overlay-title.victory { color: var(--gold); }
+.overlay-title.defeat { color: var(--blood); }
+.overlay-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+
+.name-label { display: block; font-size: 13px; margin-bottom: 8px; color: var(--text); }
+.name-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 16px;
+  background: #0d0a06;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: #fff;
+  text-align: center;
+  outline: none;
+}
+.name-input:focus { border-color: var(--gold); }
+.name-error { color: var(--blood); font-size: 12px; min-height: 16px; margin: 6px 0; }
+
+.overlay-btn {
+  margin-top: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: linear-gradient(180deg, var(--blood), #7a1420);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.overlay-btn:hover { transform: translateY(-2px); }
+.overlay-controls { margin-top: 16px; font-size: 11px; color: var(--muted); line-height: 1.6; }
+.overlay-link { display: inline-block; margin-top: 12px; color: #8ab4f8; font-size: 12px; text-decoration: none; }
+.overlay-link:hover { text-decoration: underline; }
+
+.result-stats { display: flex; justify-content: center; gap: 18px; margin-bottom: 16px; }
+.result-stat { display: flex; flex-direction: column; gap: 2px; }
+.result-stat span { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.result-stat strong { font-size: 18px; color: #fff; }
