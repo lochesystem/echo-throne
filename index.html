@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Echo Throne — GDD v0.1</title>
+  <meta name="description" content="Boss Rush pixel art. Kill the god. Claim the throne. Fight the echo.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0c12;
+      --panel: #12151f;
+      --border: #2a3044;
+      --text: #d8dce8;
+      --muted: #8890a8;
+      --blood: #c42b3e;
+      --accent: #6b4a9a;
+      --gold: #c9a227;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Source Sans 3', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .hero {
+      text-align: center;
+      padding: 3rem 1.5rem 2rem;
+      background: radial-gradient(ellipse at 50% 0%, #1a1030 0%, var(--bg) 70%);
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      font-family: Cinzel, serif;
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      letter-spacing: 0.12em;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .tagline {
+      font-style: italic;
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-bottom: 2rem;
+    }
+    .mockup {
+      max-width: 960px;
+      margin: 0 auto 2rem;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+    }
+    .mockup img { width: 100%; display: block; }
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    a.btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border-radius: 3px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    a.btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      background: linear-gradient(180deg, var(--blood), #8a1a28);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(196,43,62,0.35);
+    }
+    .btn-secondary {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+    h2 {
+      font-family: Cinzel, serif;
+      font-size: 1.25rem;
+      color: var(--gold);
+      margin: 2rem 0 0.75rem;
+      letter-spacing: 0.06em;
+    }
+    h2:first-child { margin-top: 0; }
+    ul { padding-left: 1.25rem; color: var(--muted); }
+    li { margin-bottom: 0.4rem; }
+    .pillars {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .pillar {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 0.85rem 1rem;
+      border-radius: 0 4px 4px 0;
+    }
+    .pillar strong { color: #fff; }
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <h1>ECHO THRONE</h1>
+    <p class="tagline">Kill the god. Claim the throne. Fight the echo.</p>
+    <figure class="mockup">
+      <img src="design/ref/mockup-arena-01.png" alt="Mockup — Kael vs Capitão Drakmar, Arena 3/10">
+    </figure>
+    <div class="actions">
+      <a class="btn btn-primary" href="gdd.html">Ler GDD v0.1</a>
+      <a class="btn btn-secondary" href="https://github.com/lochesystem/echo-throne/blob/main/design/GDD-v0.1.md">GDD no GitHub</a>
+    </div>
+  </header>
+
+  <main class="content">
+    <h2>O jogo</h2>
+    <p style="color: var(--muted);">
+      Action Boss Rush roguelite em pixel art top-down. Caçadores entram em Arenas que aprisionam
+      Deuses Corrompidos, extraem Sangue Primordial para se fortalecer — e pagam com corrupção.
+      Ao vencer dez arenas, o trono espera. Na run seguinte, o desafio final pode ser
+      <strong style="color:#fff">você</strong>: o eco de quem venceu antes.
+    </p>
+
+    <h2>Pilares</h2>
+    <div class="pillars">
+      <div class="pillar"><strong>Leitura antes de reflexo</strong> — padrões telegrafados, janelas de punição claras</div>
+      <div class="pillar"><strong>Boss como puzzle de movimento</strong> — cada arena é um encontro único</div>
+      <div class="pillar"><strong>Sangue tem preço</strong> — poder, corrupção e transformação visual</div>
+      <div class="pillar"><strong>Runs que se lembram</strong> — The Echo carrega vestígios da run vencedora</div>
+    </div>
+
+    <h2>Referências</h2>
+    <ul>
+      <li>Death's Door — esquiva, ritmo melee→habilidade, fases de boss</li>
+      <li>Titan Souls — foco 1v1, weak points, tensão de posicionamento</li>
+      <li>Slay the Spire — mapa de nós entre combates</li>
+      <li>Snaredusk — stack técnica PixiJS 480×270 (interno)</li>
+    </ul>
+
+    <h2>Status</h2>
+    <ul>
+      <li>GDD v0.1 completo — conceito, sistemas, 10 bosses, catálogo MVP</li>
+      <li>Próximo: paper prototype → vertical slice Kael vs Drakmar</li>
+    </ul>
+  </main>
+
+  <footer>
+    Echo Throne · GDD v0.1 · Julho 2026 · lochesystem
+  </footer>
+</body>
+</html>
